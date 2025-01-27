@@ -7,11 +7,10 @@
 #include <vector>
 using namespace std;
 
-/* Link list Node */
 struct Node {
     int data;
-    Node *next;
-    Node *random;
+    Node* next;
+    Node* random;
 
     Node(int x) {
         data = x;
@@ -20,43 +19,99 @@ struct Node {
     }
 };
 
-void print(Node *root) {
-    Node *temp = root;
-    while (temp != NULL) {
-        int k;
-        if (temp->random == NULL)
-            k = -1;
-        else
-            k = temp->random->data;
-        cout << temp->data << " " << k << " ";
+void print(Node* root) {
+    map<Node*, int> link;
+    Node* temp = root;
+    for (int i = 0; temp != NULL; i++) {
+        link[temp] = i;
         temp = temp->next;
     }
-}
-
-void append(Node **head_ref, Node **tail_ref, int new_data) {
-    Node *new_node = new Node(new_data);
-    if (*head_ref == NULL) {
-        *head_ref = new_node;
-    } else {
-        (*tail_ref)->next = new_node;
+    temp = root;
+    cout << "[";
+    while (temp->next != NULL) {
+        if (!temp->random) {
+            cout << "[" << temp->data << ", "
+                 << "NULL"
+                 << "], ";
+        } else
+            cout << "[" << temp->data << ", " << link[temp->random] + 1 << "], ";
+        temp = temp->next;
     }
-    *tail_ref = new_node;
+    if (!temp->random) {
+        cout << "[" << temp->data << ", "
+             << "NULL"
+             << "]]\n";
+    } else
+        cout << "[" << temp->data << ", " << link[temp->random] + 1 << "]]\n";
 }
 
-bool validation(Node *head, Node *res) {
-    Node *temp1 = head;
-    Node *temp2 = res;
+bool validation(Node* res, map<Node*, int>& orgAddress) {
+    Node* temp = res;
+    for (int i = 0; temp != NULL; i++) {
+        if (orgAddress.find(temp) != orgAddress.end()) {
+            return false;
+        }
+        if (orgAddress.find(temp->random) != orgAddress.end()) {
+            return false;
+        }
+        temp = temp->next;
+    }
+    return true;
+}
 
-    while (temp1 != NULL && temp2 != NULL) {
-        if (temp1->data != temp2->data)
+Node* buildLinkedList(vector<pair<int, int>>& v, map<Node*, int>& orgAddress) {
+    vector<Node*> address(v.size());
+    Node* head = new Node(v[0].first);
+    address[0] = head;
+    Node* temp = head;
+    orgAddress[head] = 0;
+    for (int i = 1; i < v.size(); i++) {
+        Node* newNode = new Node(v[i].first);
+        orgAddress[newNode] = i;
+        address[i] = newNode;
+        temp->next = newNode;
+        temp = temp->next;
+    }
+    temp = head;
+    for (int i = 0; i < v.size(); i++) {
+        if (v[i].second != -1) {
+            temp->random = address[v[i].second - 1];
+        }
+        temp = temp->next;
+    }
+
+    return head;
+}
+
+bool validateInput(map<Node*, int>& orgAddress, Node* head, vector<pair<int, int>>& v) {
+    vector<Node*> address(v.size());
+    Node* temp = head;
+    for (int i = 0; i < v.size(); i++) {
+        if (orgAddress.find(temp) == orgAddress.end() || orgAddress[temp] != i) {
             return false;
-        if ((temp1->random == NULL && temp2->random != NULL) ||
-            (temp1->random != NULL && temp2->random == NULL) ||
-            (temp1->random != NULL && temp2->random != NULL &&
-             temp1->random->data != temp2->random->data))
-            return false;
-        temp1 = temp1->next;
-        temp2 = temp2->next;
+        }
+        address[i] = temp;
+        temp = temp->next;
+    }
+    if (temp != NULL) {
+        return false;
+    }
+    temp = head;
+    for (int i = 0; i < v.size(); i++) {
+        int value = v[i].first;
+        int randomIndex = v[i].second;
+
+        if (randomIndex == -1) {
+            if (temp->random != NULL) {
+                return false;
+            }
+        } else {
+            Node* tempNode = address[randomIndex - 1];
+            if (temp->random != tempNode) {
+                return false;
+            }
+        }
+        temp = temp->next;
     }
     return true;
 }
@@ -100,65 +155,43 @@ class Solution {
     }
 };
 
+
 //{ Driver Code Starts.
 
 int main() {
     int T;
     cin >> T;
-    cin.ignore(); // Ignore the newline after T
     while (T--) {
-        string input;
-        getline(cin, input);
-        stringstream ss(input);
-        vector<int> arr;
-        int number;
-        while (ss >> number) {
-            arr.push_back(number);
-        }
-
-        Node *head = NULL, *tail = NULL;
-        for (int i = 0; i < arr.size(); ++i) {
-            append(&head, &tail, arr[i]);
-        }
-
-        getline(cin, input);
-        stringstream ss2(input);
-        vector<int> arr2;
-        while (ss2 >> number) {
-            arr2.push_back(number);
-        }
-
-        Node *temp = head;
-        for (int i = 0; i < arr2.size(); i += 2) {
-            int a = arr2[i];
-            int b = arr2[i + 1];
-
-            Node *tempA = head;
-            Node *tempB = head;
-            for (int j = 1; j < a; ++j) {
-                tempA = tempA->next;
+        int n;
+        cin >> n;
+        vector<pair<int, int>> v(n); // node data, random node number
+        for (int i = 0; i < n; i++) {
+            int x;
+            string y;
+            cin >> x >> y;
+            if (y == "NULL" || y == "N" || y == "null" || y == "n" || y == "Null") {
+                v[i] = {x, -1};
+            } else {
+                v[i] = {x, stoi(y)};
             }
-            for (int j = 1; j < b; ++j) {
-                tempB = tempB->next;
-            }
-
-            tempA->random = tempB;
         }
+        map<Node*, int> orgAddress;
+        Node* head = buildLinkedList(v, orgAddress);
 
         Solution ob;
-        Node *res = ob.cloneLinkedList(head);
-        if (!res or res == head) {
-            cout << "false" << endl;
-            continue;
-        }
-        if (validation(head, res)) {
-            cout << "true" << endl;
+        Node* res = ob.cloneLinkedList(head);
+        // check if input modified.
+        if (validateInput(orgAddress, head, v)) {
+            if (validation(res, orgAddress)) {
+                print(res);
+            } else {
+                cout << "Pointing to the original list\n";
+            }
         } else {
-            cout << "false" << endl;
+            cout << "Input list modified\n";
         }
         cout << "~\n";
     }
     return 0;
 }
-
 // } Driver Code Ends
