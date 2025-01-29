@@ -10,14 +10,15 @@ class Solution {
   public:
     double power(double b, int e) {
         // code here
-        // double res = b;
-        // int s = e<0 ? -1:1;
-        // long ex = e*s;
-        // while(e){
-        //     if(e%2) res = res*res;
-        //     e = e<<1;
-        // }
-        return pow(b,e);
+        double res = 1;
+        int s = e<0 ? -1:1;
+        long ex = e*s;
+        while(ex){
+            if(ex%2==1) res = res*b;
+            b = b*b;
+            ex = ex>>1;
+        }
+        return (s<0)? 1/res : res;
     }
 };
 
