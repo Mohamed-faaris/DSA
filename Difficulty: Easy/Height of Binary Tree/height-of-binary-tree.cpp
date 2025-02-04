@@ -74,30 +74,31 @@ Node* buildTree(string str) {
 
 
 // } Driver Code Ends
-// User function template for C++
+//User function template for C++
 
 /*
-class Node {
-public:
+struct Node
+{
     int data;
-    Node* left;
-    Node* right;
-
-    Node(int val) {
-        data = val;
+    struct Node* left;
+    struct Node* right;
+    
+    Node(int x){
+        data = x;
         left = right = NULL;
     }
 };
 */
-class Solution {
-  public:
-    // Function to find the height of a binary tree.
-    int height(Node* node) {
-        // code here
-        if(node == nullptr) return -1;
-        return max(height(node->left),height(node->right)) + 1;
+class Solution{
+    public:
+    //Function to find the height of a binary tree.
+    int height(struct Node* node){
+        // code here 
+        if(!node) return -1;
+        return max(height(node->right),height(node->left))+1;
     }
 };
+
 
 //{ Driver Code Starts.
 
